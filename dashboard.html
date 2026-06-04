@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinVox – Survey Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:          #0B0E17;
+      --surface:     #141824;
+      --surface-2:   #1A2035;
+      --border:      #252F45;
+      --accent:      #00C2A8;
+      --accent-dim:  rgba(0,194,168,0.10);
+      --accent-glow: rgba(0,194,168,0.22);
+      --text:        #E8EDF5;
+      --text-2:      #8892A4;
+      --text-muted:  #4A5568;
+      --promoter:    #00C2A8;
+      --passive:     #F59E0B;
+      --detractor:   #EF4444;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --ease:        0.2s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(0,194,168,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 90%, rgba(0,194,168,0.03) 0%, transparent 50%);
+    }
+
+    /* ── PIN SCREEN ─────────────────────────────────────────────── */
+    #pinScreen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+
+    .pin-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 44px 40px;
+      width: 100%; max-width: 400px;
+      text-align: center;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .logo {
+      display: inline-flex; align-items: center; gap: 10px;
+      margin-bottom: 32px;
+    }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: var(--accent); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark svg { width: 20px; height: 20px; fill: #0B0E17; }
+    .logo-name { font-size: 19px; font-weight: 700; letter-spacing: -0.5px; }
+    .logo-name span { color: var(--accent); }
+
+    .pin-card h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.4px; margin-bottom: 8px; }
+    .pin-card p  { font-size: 14px; color: var(--text-2); margin-bottom: 28px; }
+
+    .pin-input {
+      width: 100%;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: 'JetBrains Mono', monospace; font-size: 20px;
+      letter-spacing: 4px; text-align: center;
+      padding: 14px 16px; outline: none;
+      transition: border-color var(--ease);
+      margin-bottom: 14px;
+    }
+    .pin-input:focus { border-color: var(--accent); }
+    .pin-input::placeholder { letter-spacing: 2px; font-size: 14px; color: var(--text-muted); }
+
+    .pin-error {
+      font-size: 12px; color: #EF4444;
+      margin-bottom: 14px; display: none;
+    }
+    .pin-error.show { display: block; }
+
+    .pin-btn {
+      width: 100%; background: var(--accent); color: #0B0E17;
+      border: none; border-radius: var(--radius-sm);
+      padding: 13px; font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all var(--ease);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .pin-btn:hover { background: #00D9BD; box-shadow: 0 0 20px var(--accent-glow); }
+    .pin-btn:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
+
+    .spinner {
+      width: 15px; height: 15px;
+      border: 2px solid rgba(11,14,23,0.3); border-top-color: #0B0E17;
+      border-radius: 50%; animation: spin 0.7s linear infinite; display: none;
+    }
+    .pin-btn.loading .spinner { display: block; }
+
+    /* ── DASHBOARD ──────────────────────────────────────────────── */
+    #dashboard { display: none; }
+    #dashboard.show { display: block; }
+
+    .dash-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 32px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+    }
+
+    .dash-title { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+    .dash-subtitle { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+
+    .refresh-btn {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text-2);
+      padding: 8px 16px; font-size: 13px; font-weight: 500;
+      cursor: pointer; transition: all var(--ease);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .dash-body { padding: 32px; max-width: 1100px; margin: 0 auto; }
+
+    /* ── SUMMARY CARDS ──────────────────────────────────────────── */
+    .cards-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px; margin-bottom: 32px;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+    }
+
+    .card-label {
+      font-size: 11.5px; font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 10px;
+    }
+
+    .card-value {
+      font-size: 36px; font-weight: 700; letter-spacing: -1px;
+      color: var(--text); line-height: 1;
+    }
+    .card-value.accent { color: var(--accent); }
+
+    .card-sub {
+      font-size: 12px; color: var(--text-2); margin-top: 6px;
+    }
+
+    .nps-positive { color: var(--promoter); }
+    .nps-zero     { color: var(--text-2); }
+    .nps-negative { color: var(--detractor); }
+
+    /* ── SECTION ────────────────────────────────────────────────── */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px 28px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 13px; font-weight: 600; letter-spacing: -0.2px;
+      margin-bottom: 22px; color: var(--text);
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .section-title::before {
+      content: ''; display: block;
+      width: 3px; height: 14px;
+      background: var(--accent); border-radius: 99px;
+    }
+
+    /* ── SCORE BARS ─────────────────────────────────────────────── */
+    .score-row {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 14px;
+    }
+    .score-row:last-child { margin-bottom: 0; }
+
+    .score-label {
+      font-size: 13px; color: var(--text-2);
+      min-width: 180px; flex-shrink: 0;
+    }
+
+    .score-bar-wrap {
+      flex: 1; height: 8px;
+      background: var(--surface-2); border-radius: 99px; overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%; background: var(--accent);
+      border-radius: 99px;
+      box-shadow: 0 0 8px var(--accent-glow);
+      transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .score-val {
+      font-size: 13px; font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text); min-width: 36px; text-align: right;
+    }
+
+    .stars-mini { font-size: 12px; color: var(--text-muted); }
+
+    /* ── NPS ────────────────────────────────────────────────────── */
+    .nps-grid {
+      display: grid; grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px; margin-bottom: 24px;
+    }
+
+    .nps-segment {
+      border-radius: var(--radius-sm); padding: 16px;
+      text-align: center;
+    }
+    .nps-segment.promoter  { background: rgba(0,194,168,0.08);  border: 1px solid rgba(0,194,168,0.2); }
+    .nps-segment.passive   { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); }
+    .nps-segment.detractor { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2); }
+
+    .nps-seg-count {
+      font-size: 28px; font-weight: 700; letter-spacing: -0.5px;
+    }
+    .promoter  .nps-seg-count { color: var(--promoter); }
+    .passive   .nps-seg-count { color: var(--passive); }
+    .detractor .nps-seg-count { color: var(--detractor); }
+
+    .nps-seg-label { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+    .nps-seg-range { font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+    /* NPS distribution bar */
+    .nps-dist { display: flex; gap: 4px; align-items: flex-end; height: 60px; }
+
+    .nps-dist-col {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 4px;
+    }
+
+    .nps-dist-bar {
+      width: 100%; border-radius: 3px 3px 0 0;
+      min-height: 3px; transition: height 0.6s ease;
+    }
+    .nps-dist-bar.det { background: var(--detractor); opacity: 0.7; }
+    .nps-dist-bar.pas { background: var(--passive);   opacity: 0.7; }
+    .nps-dist-bar.pro { background: var(--promoter);  opacity: 0.85; }
+
+    .nps-dist-num {
+      font-size: 10px; color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Q7 DISTRIBUTION ────────────────────────────────────────── */
+    .dist-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px;
+    }
+    .dist-row:last-child { margin-bottom: 0; }
+
+    .dist-label { font-size: 13px; color: var(--text-2); min-width: 110px; }
+
+    .dist-bar-wrap {
+      flex: 1; height: 22px;
+      background: var(--surface-2); border-radius: 4px; overflow: hidden;
+      position: relative;
+    }
+
+    .dist-bar-fill {
+      height: 100%; background: var(--accent); opacity: 0.6;
+      border-radius: 4px; transition: width 0.7s ease;
+    }
+
+    .dist-count {
+      font-size: 12px; color: var(--text-2);
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 30px; text-align: right;
+    }
+
+    /* ── FEEDBACK ───────────────────────────────────────────────── */
+    .feedback-list { display: flex; flex-direction: column; gap: 12px; }
+
+    .feedback-item {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+
+    .feedback-text { font-size: 14px; color: var(--text); line-height: 1.6; }
+    .feedback-ts   { font-size: 11px; color: var(--text-muted); margin-top: 8px;
+                     font-family: 'JetBrains Mono', monospace; }
+
+    .empty-state {
+      text-align: center; padding: 32px;
+      font-size: 14px; color: var(--text-muted);
+    }
+
+    /* ── LOADING OVERLAY ────────────────────────────────────────── */
+    #loadingOverlay {
+      position: fixed; inset: 0;
+      background: rgba(11,14,23,0.85);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; display: none;
+    }
+    #loadingOverlay.show { display: flex; }
+    .loading-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent); margin: 0 4px;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+    .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    /* ── ANIMATIONS ─────────────────────────────────────────────── */
+    @keyframes fadeUp  { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes bounce  { 0%,80%,100% { transform:scale(0.6); opacity:0.4; } 40% { transform:scale(1); opacity:1; } }
+
+    @media (max-width: 600px) {
+      .dash-body   { padding: 16px; }
+      .section     { padding: 18px 16px; }
+      .score-label { min-width: 120px; font-size: 12px; }
+      .nps-grid    { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading overlay -->
+<div id="loadingOverlay">
+  <div class="loading-dot"></div>
+  <div class="loading-dot"></div>
+  <div class="loading-dot"></div>
+</div>
+
+<!-- ═══════════════════════════ PIN SCREEN ════════════════════════════════ -->
+<div id="pinScreen">
+  <div class="pin-card">
+    <div class="logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 20 20"><path d="M2 15l4-5 3 3 4-6 3 4V17H2v-2z"/><rect x="2" y="6" width="3" height="5" opacity=".4"/><rect x="7" y="4" width="3" height="7" opacity=".4"/><rect x="12" y="2" width="3" height="9" opacity=".4"/></svg>
+      </div>
+      <span class="logo-name">Fin<span>Vox</span></span>
+    </div>
+    <h2>Survey Dashboard</h2>
+    <p>Enter your PIN to view the results.</p>
+    <input type="password" class="pin-input" id="pinInput" placeholder="Enter PIN"
+           maxlength="20" onkeydown="if(event.key==='Enter') loadDashboard()" />
+    <div class="pin-error" id="pinError">Incorrect PIN. Please try again.</div>
+    <button class="pin-btn" id="pinBtn" onclick="loadDashboard()">
+      <div class="spinner"></div>
+      <span>View Results</span>
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════ DASHBOARD ═══════════════════════════════════ -->
+<div id="dashboard">
+
+  <div class="dash-header">
+    <div>
+      <div class="logo">
+        <div class="logo-mark">
+          <svg viewBox="0 0 20 20"><path d="M2 15l4-5 3 3 4-6 3 4V17H2v-2z"/><rect x="2" y="6" width="3" height="5" opacity=".4"/><rect x="7" y="4" width="3" height="7" opacity=".4"/><rect x="12" y="2" width="3" height="9" opacity=".4"/></svg>
+        </div>
+        <span class="logo-name">Fin<span>Vox</span></span>
+      </div>
+    </div>
+    <div>
+      <div class="dash-title">Satisfaction Survey Results</div>
+      <div class="dash-subtitle" id="dashSubtitle">Loading…</div>
+    </div>
+    <button class="refresh-btn" onclick="refreshData()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+      Refresh
+    </button>
+  </div>
+
+  <div class="dash-body">
+
+    <!-- Summary cards -->
+    <div class="cards-row" id="summaryCards"></div>
+
+    <!-- Score averages -->
+    <div class="section">
+      <div class="section-title">Average Scores by Category</div>
+      <div id="scoresSection"></div>
+    </div>
+
+    <!-- NPS -->
+    <div class="section">
+      <div class="section-title">Net Promoter Score (NPS)</div>
+      <div id="npsSection"></div>
+    </div>
+
+    <!-- Q7 ease -->
+    <div class="section">
+      <div class="section-title">Ease of Access</div>
+      <div id="q7Section"></div>
+    </div>
+
+    <!-- Open feedback -->
+    <div class="section">
+      <div class="section-title">Open Feedback</div>
+      <div id="feedbackSection"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ──────────────────────────────────────────────────────────────
+  const APPS_SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE'; // Same URL as in survey.html
+
+  let savedPin = '';
+
+  // ─── PIN + LOAD ───────────────────────────────────────────────────────────
+  async function loadDashboard() {
+    const pin = document.getElementById('pinInput').value.trim();
+    if (!pin) return;
+
+    const btn = document.getElementById('pinBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    document.getElementById('pinError').classList.remove('show');
+
+    try {
+      const res  = await fetch(`${APPS_SCRIPT_URL}?action=stats&pin=${encodeURIComponent(pin)}`);
+      const json = await res.json();
+
+      if (json.status === 'unauthorized') {
+        document.getElementById('pinError').classList.add('show');
+        btn.disabled = false; btn.classList.remove('loading');
+        return;
+      }
+
+      savedPin = pin;
+      renderDashboard(json.data);
+      document.getElementById('pinScreen').style.display  = 'none';
+      document.getElementById('dashboard').classList.add('show');
+
+    } catch {
+      alert('Could not connect. Check your Apps Script URL.');
+      btn.disabled = false; btn.classList.remove('loading');
+    }
+  }
+
+  async function refreshData() {
+    document.getElementById('loadingOverlay').classList.add('show');
+    try {
+      const res  = await fetch(`${APPS_SCRIPT_URL}?action=stats&pin=${encodeURIComponent(savedPin)}`);
+      const json = await res.json();
+      if (json.status === 'ok') renderDashboard(json.data);
+    } catch { alert('Refresh failed. Please try again.'); }
+    document.getElementById('loadingOverlay').classList.remove('show');
+  }
+
+  // ─── RENDER ───────────────────────────────────────────────────────────────
+  function renderDashboard(d) {
+    if (!d || d.totalSubmissions === 0) {
+      document.getElementById('summaryCards').innerHTML =
+        '<div style="color:var(--text-2); font-size:14px; grid-column:1/-1; padding:20px 0;">No submissions yet.</div>';
+      ['scoresSection','npsSection','q7Section','feedbackSection'].forEach(id =>
+        document.getElementById(id).innerHTML = '<div class="empty-state">No data yet.</div>'
+      );
+      document.getElementById('dashSubtitle').textContent = 'No submissions yet';
+      return;
+    }
+
+    document.getElementById('dashSubtitle').textContent =
+      `Last updated ${new Date().toLocaleTimeString()} · ${d.totalSubmissions} response${d.totalSubmissions !== 1 ? 's' : ''}`;
+
+    renderSummaryCards(d);
+    renderScores(d.averages);
+    renderNPS(d.nps, d.totalSubmissions);
+    renderQ7(d.q7Distribution, d.totalSubmissions);
+    renderFeedback(d.feedback);
+  }
+
+  // Summary cards
+  function renderSummaryCards(d) {
+    const overallAvg = d.averages.q1_overall;
+    const npsClass   = d.nps.score > 0 ? 'nps-positive' : d.nps.score < 0 ? 'nps-negative' : 'nps-zero';
+
+    document.getElementById('summaryCards').innerHTML = `
+      <div class="card">
+        <div class="card-label">Responses</div>
+        <div class="card-value accent">${d.totalSubmissions}</div>
+        <div class="card-sub">${d.totalIssued} surveys sent &mdash; ${d.responseRate}% response rate</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Overall Satisfaction</div>
+        <div class="card-value accent">${overallAvg}<span style="font-size:18px;color:var(--text-2);font-weight:400"> / 5</span></div>
+        <div class="card-sub">${starsText(overallAvg)}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">NPS Score</div>
+        <div class="card-value ${npsClass}">${d.nps.score > 0 ? '+' : ''}${d.nps.score}</div>
+        <div class="card-sub">${d.nps.promoters} promoters · ${d.nps.passives} passives · ${d.nps.detractors} detractors</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Avg Professionalism</div>
+        <div class="card-value">${d.averages.q8_professionalism}<span style="font-size:18px;color:var(--text-2);font-weight:400"> / 5</span></div>
+        <div class="card-sub">${starsText(d.averages.q8_professionalism)}</div>
+      </div>
+    `;
+  }
+
+  // Score averages
+  function renderScores(avgs) {
+    const questions = [
+      { key: 'q1_overall',         label: 'Overall Satisfaction' },
+      { key: 'q2_quality',         label: 'Service Quality' },
+      { key: 'q3_response_time',   label: 'Response Time' },
+      { key: 'q4_resolution',      label: 'Issue Resolution' },
+      { key: 'q5_communication',   label: 'Communication Clarity' },
+      { key: 'q6_value',           label: 'Value for Money' },
+      { key: 'q8_professionalism', label: 'Team Professionalism' },
+    ];
+
+    document.getElementById('scoresSection').innerHTML = questions.map(q => `
+      <div class="score-row">
+        <span class="score-label">${q.label}</span>
+        <div class="score-bar-wrap">
+          <div class="score-bar-fill" style="width:${(avgs[q.key] / 5) * 100}%"></div>
+        </div>
+        <span class="score-val">${avgs[q.key]}</span>
+      </div>
+    `).join('');
+  }
+
+  // NPS
+  function renderNPS(nps, total) {
+    const pPct = Math.round((nps.promoters  / total) * 100);
+    const pasPct= Math.round((nps.passives  / total) * 100);
+    const dPct = Math.round((nps.detractors / total) * 100);
+    const maxCount = Math.max(...Object.values(nps.distribution), 1);
+
+    const distBars = Array.from({length: 11}, (_, i) => {
+      const count = nps.distribution[i] || 0;
+      const pct   = Math.round((count / maxCount) * 100);
+      const cls   = i >= 9 ? 'pro' : i >= 7 ? 'pas' : 'det';
+      return `
+        <div class="nps-dist-col">
+          <div class="nps-dist-bar ${cls}" style="height:${pct}%"></div>
+          <div class="nps-dist-num">${i}</div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('npsSection').innerHTML = `
+      <div class="nps-grid">
+        <div class="nps-segment promoter">
+          <div class="nps-seg-count">${nps.promoters}</div>
+          <div class="nps-seg-label">Promoters</div>
+          <div class="nps-seg-range">score 9–10 · ${pPct}%</div>
+        </div>
+        <div class="nps-segment passive">
+          <div class="nps-seg-count">${nps.passives}</div>
+          <div class="nps-seg-label">Passives</div>
+          <div class="nps-seg-range">score 7–8 · ${pasPct}%</div>
+        </div>
+        <div class="nps-segment detractor">
+          <div class="nps-seg-count">${nps.detractors}</div>
+          <div class="nps-seg-label">Detractors</div>
+          <div class="nps-seg-range">score 0–6 · ${dPct}%</div>
+        </div>
+      </div>
+      <div class="nps-dist">${distBars}</div>
+    `;
+  }
+
+  // Q7 distribution
+  function renderQ7(dist, total) {
+    const options = ['Very easy','Easy','Neutral','Difficult','Very difficult'];
+    const maxCount = Math.max(...options.map(o => dist[o] || 0), 1);
+
+    document.getElementById('q7Section').innerHTML = options.map(opt => {
+      const count = dist[opt] || 0;
+      const pct   = Math.round((count / maxCount) * 100);
+      const share = total > 0 ? Math.round((count / total) * 100) : 0;
+      return `
+        <div class="dist-row">
+          <span class="dist-label">${opt}</span>
+          <div class="dist-bar-wrap">
+            <div class="dist-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <span class="dist-count">${count} <span style="color:var(--text-muted)">(${share}%)</span></span>
+        </div>`;
+    }).join('');
+  }
+
+  // Open feedback
+  function renderFeedback(feedback) {
+    if (!feedback || feedback.length === 0) {
+      document.getElementById('feedbackSection').innerHTML =
+        '<div class="empty-state">No open feedback submitted yet.</div>';
+      return;
+    }
+
+    document.getElementById('feedbackSection').innerHTML = `
+      <div class="feedback-list">
+        ${feedback.slice().reverse().map(f => `
+          <div class="feedback-item">
+            <div class="feedback-text">${escapeHtml(f.text)}</div>
+            <div class="feedback-ts">${new Date(f.timestamp).toLocaleString()}</div>
+          </div>`).join('')}
+      </div>`;
+  }
+
+  // ─── HELPERS ─────────────────────────────────────────────────────────────
+  function starsText(avg) {
+    const stars = Math.round(avg);
+    return '★'.repeat(stars) + '☆'.repeat(5 - stars) + ` &nbsp;${avg} out of 5`;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+  }
+
+  // Allow Enter key on PIN input
+  document.getElementById('pinInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') loadDashboard();
+  });
+</script>
+</body>
+</html>
