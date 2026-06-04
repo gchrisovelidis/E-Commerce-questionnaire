@@ -493,7 +493,7 @@
     if (used.includes(token)) { showScreen('alreadyScreen'); return; }
 
     // Server-side check — catches reuse from other devices
-    if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+    if (APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbzRF2rp_bMzLixl-WdinARntgahOUROs5BMuT6vXnWT2kmx01UcwzLBqWv5fBAYDW9G/exec') {
       try {
         const res  = await fetch(`${APPS_SCRIPT_URL}?action=check_token&token=${encodeURIComponent(token)}`);
         const data = await res.json();
