@@ -616,13 +616,13 @@
       q10_feedback:       document.getElementById('q10').value.trim(),
     };
 
-    // no-cors: Google Apps Script blocks cross-origin response reading.
-    // Token was already validated via GET on page load, so showing success after POST is safe.
-    const formData = new FormData();
-    formData.append('payload', JSON.stringify(payload));
-
+    // Submit via GET — works perfectly with Google Apps Script, zero CORS issues
     try {
-      await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
+      const params = new URLSearchParams({ action: 'submit', ...payload });
+      const res    = await fetch(`${APPS_SCRIPT_URL}?${params}`);
+      const data   = await res.json();
+
+      if (data.status === 'already_used') { showScreen('alreadyScreen'); return; }
 
       // Mark token in localStorage as a secondary guard
       const used = JSON.parse(localStorage.getItem('fv_tokens') || '[]');
