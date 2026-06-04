@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FinVox – Client Satisfaction Survey</title>
+  <title>SIG E-Commerce – Satisfaction Survey</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -60,7 +60,6 @@
       border-radius: 9px;
       display: flex; align-items: center; justify-content: center;
     }
-
     .logo-mark svg { width: 22px; height: 22px; fill: #0B0E17; }
 
     .logo-name {
@@ -124,6 +123,13 @@
     .q-block:last-of-type { border-bottom: none; }
     .q-block:hover { background: rgba(255,255,255,0.012); }
 
+    /* Conditional blocks hidden by default */
+    .q-block.conditional { display: none; }
+    .q-block.conditional.visible {
+      display: block;
+      animation: fadeUp 0.3s ease both;
+    }
+
     .q-num {
       font-size: 10.5px; font-family: 'JetBrains Mono', monospace;
       color: var(--accent); letter-spacing: 1.5px;
@@ -162,6 +168,34 @@
       filter: drop-shadow(0 0 5px var(--accent-glow));
     }
 
+    /* ── DROPDOWN ───────────────────────────────────────────────────── */
+    .select-wrap { position: relative; }
+
+    .q-select {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      padding: 13px 44px 13px 16px;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color var(--ease);
+    }
+    .q-select:focus { border-color: var(--accent); }
+    .q-select option { background: #1A2035; color: var(--text); }
+    .q-select option:disabled { color: var(--text-muted); }
+
+    .select-arrow {
+      position: absolute; right: 14px; top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none; color: var(--text-muted);
+    }
+
     /* ── NPS ────────────────────────────────────────────────────────── */
     .nps { display: flex; gap: 6px; flex-wrap: wrap; }
 
@@ -187,35 +221,6 @@
       display: flex; justify-content: space-between;
       margin-top: 10px; font-size: 11px; color: var(--text-muted);
     }
-
-    /* ── RADIO ──────────────────────────────────────────────────────── */
-    .radios { display: flex; flex-direction: column; gap: 9px; }
-
-    .radio-opt {
-      display: flex; align-items: center; gap: 13px;
-      padding: 13px 16px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      cursor: pointer; transition: all var(--ease);
-    }
-    .radio-opt:hover { border-color: var(--accent); background: var(--accent-dim); }
-    .radio-opt.on  { border-color: var(--accent); background: var(--accent-dim); }
-
-    .radio-dot {
-      width: 18px; height: 18px; flex-shrink: 0;
-      border-radius: 50%; border: 2px solid var(--border);
-      transition: all var(--ease);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .radio-opt.on .radio-dot { border-color: var(--accent); background: var(--accent); }
-    .radio-opt.on .radio-dot::after {
-      content: ''; width: 6px; height: 6px;
-      border-radius: 50%; background: #0B0E17;
-    }
-
-    .radio-txt { font-size: 14px; color: var(--text-secondary); transition: color var(--ease); }
-    .radio-opt.on .radio-txt { color: var(--text); }
 
     /* ── TEXTAREA ───────────────────────────────────────────────────── */
     .q-textarea {
@@ -312,11 +317,14 @@
   <div class="header">
     <div class="logo">
       <div class="logo-mark">
-        <svg viewBox="0 0 20 20"><path d="M2 15l4-5 3 3 4-6 3 4V17H2v-2z"/><rect x="2" y="6" width="3" height="5" opacity=".4"/><rect x="7" y="4" width="3" height="7" opacity=".4"/><rect x="12" y="2" width="3" height="9" opacity=".4"/></svg>
+        <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="11" cy="11" r="3.5"/>
+          <path d="M11 2v3M11 17v3M2 11h3M17 11h3M4.9 4.9l2.1 2.1M14.9 14.9l2.1 2.1M4.9 17.1l2.1-2.1M14.9 7.1l2.1-2.1" stroke="#0B0E17" stroke-width="2" stroke-linecap="round" fill="none"/>
+        </svg>
       </div>
-      <span class="logo-name">Fin<span>Vox</span></span>
+      <span class="logo-name"><span>SIG</span> E-Commerce</span>
     </div>
-    <h1>Client Satisfaction Survey</h1>
+    <h1>Service Satisfaction Survey</h1>
     <p>Your feedback helps us improve. This takes about 3 minutes — we appreciate your time.</p>
   </div>
 
@@ -330,88 +338,103 @@
 
   <div class="card">
 
-    <!-- Q1 -->
+    <!-- Q1: Overall satisfaction -->
     <div class="q-block" data-q="q1">
-      <div class="q-num">01 / 10</div>
-      <div class="q-label">How satisfied are you with our service overall? <span class="req">*</span></div>
+      <div class="q-num">01</div>
+      <div class="q-label">How satisfied are you with our overall online availability management service? <span class="req">*</span></div>
       <div class="stars" id="q1" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q2 -->
+    <!-- Q2: Accuracy -->
     <div class="q-block" data-q="q2">
-      <div class="q-num">02 / 10</div>
-      <div class="q-label">How would you rate the quality of our service? <span class="req">*</span></div>
+      <div class="q-num">02</div>
+      <div class="q-label">How accurately is your property's availability reflected across online channels? <span class="req">*</span></div>
       <div class="stars" id="q2" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q3 -->
+    <!-- Q3: Speed -->
     <div class="q-block" data-q="q3">
-      <div class="q-num">03 / 10</div>
-      <div class="q-label">How satisfied are you with our response time? <span class="req">*</span></div>
+      <div class="q-num">03</div>
+      <div class="q-label">How satisfied are you with the speed of availability and rate updates? <span class="req">*</span></div>
       <div class="stars" id="q3" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q4 -->
-    <div class="q-block" data-q="q4">
-      <div class="q-num">04 / 10</div>
-      <div class="q-label">How effectively were your requests or issues resolved? <span class="req">*</span></div>
+    <!-- Q_DEPT: Department dropdown -->
+    <div class="q-block" data-q="q_dept">
+      <div class="q-num">04</div>
+      <div class="q-label">Please select your department <span class="req">*</span></div>
+      <div class="select-wrap">
+        <select class="q-select" id="q_dept" onchange="onDeptChange()">
+          <option value="" disabled selected>— Select your department —</option>
+          <option value="1">Sani CRS B2C</option>
+          <option value="2">Sani CRS B2B</option>
+          <option value="3">Ikos CRS B2C</option>
+          <option value="4">Ikos CRS B2B</option>
+          <option value="5">SIG Sales HQ</option>
+          <option value="6">SIG RSO UK</option>
+          <option value="7">SIG RSO DACH</option>
+          <option value="8">SIG RSO UAE-GCC</option>
+        </select>
+        <svg class="select-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="q-error">Please select your department to continue.</div>
+    </div>
+
+    <!-- Q4: CRS (conditional — shown for options 1–4) -->
+    <div class="q-block conditional" data-q="q4" id="q4Block">
+      <div class="q-num">05</div>
+      <div class="q-label">How well does our team collaborate with your CRS requirements? <span class="req">*</span></div>
       <div class="stars" id="q4" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q5 -->
-    <div class="q-block" data-q="q5">
-      <div class="q-num">05 / 10</div>
-      <div class="q-label">How would you rate the clarity of our communication? <span class="req">*</span></div>
+    <!-- Q5: Sales (conditional — shown for options 5–8) -->
+    <div class="q-block conditional" data-q="q5" id="q5Block">
+      <div class="q-num">05</div>
+      <div class="q-label">How effectively do we support your Sales department's needs? <span class="req">*</span></div>
       <div class="stars" id="q5" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q6 -->
+    <!-- Q6: Communication -->
     <div class="q-block" data-q="q6">
-      <div class="q-num">06 / 10</div>
-      <div class="q-label">How satisfied are you with the value you receive for the price? <span class="req">*</span></div>
+      <div class="q-num">06</div>
+      <div class="q-label">How would you rate the clarity of communication from our team? <span class="req">*</span></div>
       <div class="stars" id="q6" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q7 -->
+    <!-- Q7: Issue resolution -->
     <div class="q-block" data-q="q7">
-      <div class="q-num">07 / 10</div>
-      <div class="q-label">How easy was it to access and use our service? <span class="req">*</span></div>
-      <div class="radios" id="q7">
-        <div class="radio-opt" data-val="Very easy"      onclick="pickRadio('q7',this)"><div class="radio-dot"></div><span class="radio-txt">Very easy</span></div>
-        <div class="radio-opt" data-val="Easy"           onclick="pickRadio('q7',this)"><div class="radio-dot"></div><span class="radio-txt">Easy</span></div>
-        <div class="radio-opt" data-val="Neutral"        onclick="pickRadio('q7',this)"><div class="radio-dot"></div><span class="radio-txt">Neutral</span></div>
-        <div class="radio-opt" data-val="Difficult"      onclick="pickRadio('q7',this)"><div class="radio-dot"></div><span class="radio-txt">Difficult</span></div>
-        <div class="radio-opt" data-val="Very difficult" onclick="pickRadio('q7',this)"><div class="radio-dot"></div><span class="radio-txt">Very difficult</span></div>
-      </div>
-      <div class="q-error">Please select an option to continue.</div>
+      <div class="q-num">07</div>
+      <div class="q-label">How quickly are issues or discrepancies resolved when flagged? <span class="req">*</span></div>
+      <div class="stars" id="q7" data-val=""></div>
+      <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q8 -->
+    <!-- Q8: Reporting -->
     <div class="q-block" data-q="q8">
-      <div class="q-num">08 / 10</div>
-      <div class="q-label">How professional was our team throughout your experience? <span class="req">*</span></div>
+      <div class="q-num">08</div>
+      <div class="q-label">How would you rate the quality of reporting and insights we provide? <span class="req">*</span></div>
       <div class="stars" id="q8" data-val=""></div>
       <div class="q-error">Please select a rating to continue.</div>
     </div>
 
-    <!-- Q9 NPS -->
+    <!-- Q9: NPS -->
     <div class="q-block" data-q="q9">
-      <div class="q-num">09 / 10</div>
-      <div class="q-label">How likely are you to recommend us to a colleague or friend? <span class="req">*</span></div>
+      <div class="q-num">09</div>
+      <div class="q-label">How likely are you to recommend our services to a colleague? <span class="req">*</span></div>
       <div class="nps" id="q9" data-val=""></div>
       <div class="nps-labels"><span>Not at all likely</span><span>Extremely likely</span></div>
       <div class="q-error">Please select a score to continue.</div>
     </div>
 
-    <!-- Q10 open -->
+    <!-- Q10: Open feedback -->
     <div class="q-block" data-q="q10">
-      <div class="q-num">10 / 10</div>
+      <div class="q-num">10</div>
       <div class="q-label">Is there anything else you'd like to share with us? <span class="opt">(Optional)</span></div>
       <textarea class="q-textarea" id="q10" placeholder="Your thoughts, suggestions, or anything else on your mind…"></textarea>
     </div>
@@ -430,8 +453,8 @@
 <!-- ════════════════════════════ SUCCESS SCREEN ════════════════════════════ -->
 <div class="screen" id="successScreen">
   <div class="screen-logo">
-    <div class="logo-mark"><svg viewBox="0 0 20 20"><path d="M2 15l4-5 3 3 4-6 3 4V17H2v-2z"/><rect x="2" y="6" width="3" height="5" opacity=".4"/><rect x="7" y="4" width="3" height="7" opacity=".4"/><rect x="12" y="2" width="3" height="9" opacity=".4"/></svg></div>
-    <span class="logo-name">Fin<span>Vox</span></span>
+    <div class="logo-mark"><svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="3.5"/><path d="M11 2v3M11 17v3M2 11h3M17 11h3M4.9 4.9l2.1 2.1M14.9 14.9l2.1 2.1M4.9 17.1l2.1-2.1M14.9 7.1l2.1-2.1" stroke="#0B0E17" stroke-width="2" stroke-linecap="round" fill="none"/></svg></div>
+    <span class="logo-name"><span>SIG</span> E-Commerce</span>
   </div>
   <div class="screen-icon success">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#00C2A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -443,8 +466,8 @@
 <!-- ══════════════════════════ ALREADY USED SCREEN ════════════════════════ -->
 <div class="screen" id="alreadyScreen">
   <div class="screen-logo">
-    <div class="logo-mark"><svg viewBox="0 0 20 20"><path d="M2 15l4-5 3 3 4-6 3 4V17H2v-2z"/><rect x="2" y="6" width="3" height="5" opacity=".4"/><rect x="7" y="4" width="3" height="7" opacity=".4"/><rect x="12" y="2" width="3" height="9" opacity=".4"/></svg></div>
-    <span class="logo-name">Fin<span>Vox</span></span>
+    <div class="logo-mark"><svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="3.5"/><path d="M11 2v3M11 17v3M2 11h3M17 11h3M4.9 4.9l2.1 2.1M14.9 14.9l2.1 2.1M4.9 17.1l2.1-2.1M14.9 7.1l2.1-2.1" stroke="#0B0E17" stroke-width="2" stroke-linecap="round" fill="none"/></svg></div>
+    <span class="logo-name"><span>SIG</span> E-Commerce</span>
   </div>
   <div class="screen-icon warn">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="#FFC107"/></svg>
@@ -456,8 +479,8 @@
 <!-- ══════════════════════════ INVALID TOKEN SCREEN ═══════════════════════ -->
 <div class="screen" id="invalidScreen">
   <div class="screen-logo">
-    <div class="logo-mark"><svg viewBox="0 0 20 20"><path d="M2 15l4-5 3 3 4-6 3 4V17H2v-2z"/><rect x="2" y="6" width="3" height="5" opacity=".4"/><rect x="7" y="4" width="3" height="7" opacity=".4"/><rect x="12" y="2" width="3" height="9" opacity=".4"/></svg></div>
-    <span class="logo-name">Fin<span>Vox</span></span>
+    <div class="logo-mark"><svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="3.5"/><path d="M11 2v3M11 17v3M2 11h3M17 11h3M4.9 4.9l2.1 2.1M14.9 14.9l2.1 2.1M4.9 17.1l2.1-2.1M14.9 7.1l2.1-2.1" stroke="#0B0E17" stroke-width="2" stroke-linecap="round" fill="none"/></svg></div>
+    <span class="logo-name"><span>SIG</span> E-Commerce</span>
   </div>
   <div class="screen-icon warn">
     <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#FFC107" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><circle cx="12" cy="16" r="0.5" fill="#FFC107"/></svg>
@@ -467,14 +490,14 @@
 </div>
 
 <script>
-  // ─── CONFIG — replace this after deploying your Apps Script ─────────────
+  // ─── CONFIG ──────────────────────────────────────────────────────────────
   const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzRF2rp_bMzLixl-WdinARntgahOUROs5BMuT6vXnWT2kmx01UcwzLBqWv5fBAYDW9G/exec';
 
-  // ─── STAR QUESTION IDs ────────────────────────────────────────────────────
-  const STAR_IDS   = ['q1','q2','q3','q4','q5','q6','q8'];
-  const REQUIRED   = ['q1','q2','q3','q4','q5','q6','q7','q8','q9']; // 9 required
+  // ─── CONSTANTS ───────────────────────────────────────────────────────────
+  const ALWAYS_STARS = ['q1','q2','q3','q6','q7','q8'];
+  const TOTAL_REQUIRED = 9; // q1,q2,q3,dept,conditional,q6,q7,q8,q9
 
-  // ─── TOKEN CHECK ──────────────────────────────────────────────────────────
+  // ─── TOKEN CHECK ─────────────────────────────────────────────────────────
   const token = new URLSearchParams(location.search).get('token');
 
   function showScreen(id) {
@@ -487,32 +510,26 @@
 
   async function verifyToken() {
     if (!token) { showScreen('invalidScreen'); return; }
-
-    // Fast local check first (no network needed if already submitted on this device)
-    const used = JSON.parse(localStorage.getItem('fv_tokens') || '[]');
+    const used = JSON.parse(localStorage.getItem('sig_tokens') || '[]');
     if (used.includes(token)) { showScreen('alreadyScreen'); return; }
-
-    // Server-side check — catches reuse from other devices
-    if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbxIF-7ztLdIpYLplQ-gLdNHxEoysXtKP_9H6rb9DRaF8dD1fgvEr5-g2-29x8b0U1e7/exec') {
+    if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
       try {
         const res  = await fetch(`${APPS_SCRIPT_URL}?action=check_token&token=${encodeURIComponent(token)}`);
         const data = await res.json();
         if (data.status === 'invalid')      { showScreen('invalidScreen');  return; }
         if (data.status === 'already_used') { showScreen('alreadyScreen');  return; }
-      } catch { /* network error — show the form and let server validate on submit */ }
+      } catch { /* network error — show form, server validates on submit */ }
     }
   }
-
   verifyToken();
 
-  // ─── BUILD STARS ──────────────────────────────────────────────────────────
-  STAR_IDS.forEach(id => {
+  // ─── BUILD STARS ─────────────────────────────────────────────────────────
+  function buildStars(id) {
     const wrap = document.getElementById(id);
+    if (!wrap) return;
     for (let i = 1; i <= 5; i++) {
       const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'star';
-      btn.dataset.v = i;
+      btn.type = 'button'; btn.className = 'star'; btn.dataset.v = i;
       btn.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></svg>`;
       btn.addEventListener('mouseenter', () => paintStars(id, i));
       btn.addEventListener('mouseleave', () => paintStars(id, +wrap.dataset.val || 0));
@@ -523,48 +540,75 @@
       });
       wrap.appendChild(btn);
     }
-  });
+  }
 
   function paintStars(id, n) {
-    document.getElementById(id).querySelectorAll('.star').forEach((s, i) =>
-      s.classList.toggle('on', i < n)
-    );
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.querySelectorAll('.star').forEach((s, i) => s.classList.toggle('on', i < n));
   }
+
+  // Build all star groups
+  [...ALWAYS_STARS, 'q4', 'q5'].forEach(buildStars);
 
   // ─── BUILD NPS ────────────────────────────────────────────────────────────
   const npsWrap = document.getElementById('q9');
+  npsWrap.dataset.val = '';
   for (let i = 0; i <= 10; i++) {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'nps-btn'; btn.textContent = i; btn.dataset.v = i;
     btn.addEventListener('click', () => {
       npsWrap.querySelectorAll('.nps-btn').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      npsWrap.dataset.val = i;
+      btn.classList.add('on'); npsWrap.dataset.val = i;
       tick('q9'); refreshProgress();
     });
     npsWrap.appendChild(btn);
   }
 
-  // ─── RADIO ────────────────────────────────────────────────────────────────
-  function pickRadio(id, el) {
-    document.getElementById(id).querySelectorAll('.radio-opt').forEach(o => o.classList.remove('on'));
-    el.classList.add('on');
-    tick('q7'); refreshProgress();
+  // ─── DEPARTMENT CONDITIONAL LOGIC ────────────────────────────────────────
+  function onDeptChange() {
+    const val = parseInt(document.getElementById('q_dept').value);
+    const q4Block = document.getElementById('q4Block');
+    const q5Block = document.getElementById('q5Block');
+
+    // Reset both conditional stars
+    document.getElementById('q4').dataset.val = '';
+    document.getElementById('q5').dataset.val = '';
+    paintStars('q4', 0);
+    paintStars('q5', 0);
+    q4Block.classList.remove('has-error');
+    q5Block.classList.remove('has-error');
+
+    if (val >= 1 && val <= 4) {
+      q4Block.classList.add('visible');
+      q5Block.classList.remove('visible');
+    } else if (val >= 5 && val <= 8) {
+      q5Block.classList.add('visible');
+      q4Block.classList.remove('visible');
+    } else {
+      q4Block.classList.remove('visible');
+      q5Block.classList.remove('visible');
+    }
+
+    tick('q_dept'); refreshProgress();
   }
 
   // ─── PROGRESS ─────────────────────────────────────────────────────────────
   function answered() {
     let n = 0;
-    STAR_IDS.forEach(id => { if (+document.getElementById(id).dataset.val > 0) n++; });
-    if (document.getElementById('q7').querySelector('.on')) n++;
+    ALWAYS_STARS.forEach(id => { if (+document.getElementById(id).dataset.val > 0) n++; });
+    const deptVal = parseInt(document.getElementById('q_dept').value);
+    if (deptVal) n++;
+    if (deptVal >= 1 && deptVal <= 4 && +document.getElementById('q4').dataset.val > 0) n++;
+    if (deptVal >= 5 && deptVal <= 8 && +document.getElementById('q5').dataset.val > 0) n++;
     if (npsWrap.dataset.val !== '') n++;
     return n;
   }
 
   function refreshProgress() {
-    const n = answered(), total = REQUIRED.length;
-    document.getElementById('progressFill').style.width = Math.round(n/total*100) + '%';
-    document.getElementById('progressText').textContent = `${n} of ${total} answered`;
+    const n = answered();
+    document.getElementById('progressFill').style.width = Math.round(n / TOTAL_REQUIRED * 100) + '%';
+    document.getElementById('progressText').textContent = `${n} of ${TOTAL_REQUIRED} answered`;
   }
 
   // ─── VALIDATION ───────────────────────────────────────────────────────────
@@ -574,21 +618,32 @@
 
   function validate() {
     let ok = true;
-    STAR_IDS.forEach(id => {
+
+    ALWAYS_STARS.forEach(id => {
       if (!+document.getElementById(id).dataset.val) {
         document.querySelector(`[data-q="${id}"]`).classList.add('has-error');
         ok = false;
       }
     });
-    if (!document.getElementById('q7').querySelector('.on')) {
-      document.querySelector('[data-q="q7"]').classList.add('has-error');
+
+    const deptVal = parseInt(document.getElementById('q_dept').value);
+    if (!deptVal) {
+      document.querySelector('[data-q="q_dept"]').classList.add('has-error');
+      ok = false;
+    } else if (deptVal >= 1 && deptVal <= 4 && !+document.getElementById('q4').dataset.val) {
+      document.querySelector('[data-q="q4"]').classList.add('has-error');
+      ok = false;
+    } else if (deptVal >= 5 && deptVal <= 8 && !+document.getElementById('q5').dataset.val) {
+      document.querySelector('[data-q="q5"]').classList.add('has-error');
       ok = false;
     }
+
     if (npsWrap.dataset.val === '') {
       document.querySelector('[data-q="q9"]').classList.add('has-error');
       ok = false;
     }
-    if (!ok) document.querySelector('.has-error')?.scrollIntoView({ behavior:'smooth', block:'center' });
+
+    if (!ok) document.querySelector('.has-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return ok;
   }
 
@@ -601,22 +656,25 @@
     btn.classList.add('loading');
     btn.querySelector('.btn-text').textContent = 'Submitting…';
 
+    const deptVal   = parseInt(document.getElementById('q_dept').value);
+    const deptLabel = document.getElementById('q_dept').options[document.getElementById('q_dept').selectedIndex].text;
+
     const payload = {
       token,
       timestamp:          new Date().toISOString(),
+      department:         deptLabel,
       q1_overall:         document.getElementById('q1').dataset.val,
-      q2_quality:         document.getElementById('q2').dataset.val,
-      q3_response_time:   document.getElementById('q3').dataset.val,
-      q4_resolution:      document.getElementById('q4').dataset.val,
-      q5_communication:   document.getElementById('q5').dataset.val,
-      q6_value:           document.getElementById('q6').dataset.val,
-      q7_ease:            document.getElementById('q7').querySelector('.on')?.dataset.val,
-      q8_professionalism: document.getElementById('q8').dataset.val,
+      q2_accuracy:        document.getElementById('q2').dataset.val,
+      q3_speed:           document.getElementById('q3').dataset.val,
+      q4_crs:             deptVal >= 1 && deptVal <= 4 ? document.getElementById('q4').dataset.val : '',
+      q5_sales:           deptVal >= 5 && deptVal <= 8 ? document.getElementById('q5').dataset.val : '',
+      q6_communication:   document.getElementById('q6').dataset.val,
+      q7_resolution:      document.getElementById('q7').dataset.val,
+      q8_reporting:       document.getElementById('q8').dataset.val,
       q9_nps:             npsWrap.dataset.val,
       q10_feedback:       document.getElementById('q10').value.trim(),
     };
 
-    // Submit via GET — works perfectly with Google Apps Script, zero CORS issues
     try {
       const params = new URLSearchParams({ action: 'submit', ...payload });
       const res    = await fetch(`${APPS_SCRIPT_URL}?${params}`);
@@ -624,10 +682,9 @@
 
       if (data.status === 'already_used') { showScreen('alreadyScreen'); return; }
 
-      // Mark token in localStorage as a secondary guard
-      const used = JSON.parse(localStorage.getItem('fv_tokens') || '[]');
+      const used = JSON.parse(localStorage.getItem('sig_tokens') || '[]');
       used.push(token);
-      localStorage.setItem('fv_tokens', JSON.stringify(used));
+      localStorage.setItem('sig_tokens', JSON.stringify(used));
 
       showScreen('successScreen');
     } catch {
@@ -637,9 +694,6 @@
       alert('Something went wrong. Please check your connection and try again.');
     }
   }
-
-  // Init NPS data-val
-  npsWrap.dataset.val = '';
 </script>
 </body>
 </html>
