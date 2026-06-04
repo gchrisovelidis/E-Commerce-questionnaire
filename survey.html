@@ -493,7 +493,7 @@
     if (used.includes(token)) { showScreen('alreadyScreen'); return; }
 
     // Server-side check — catches reuse from other devices
-    if (APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbzRF2rp_bMzLixl-WdinARntgahOUROs5BMuT6vXnWT2kmx01UcwzLBqWv5fBAYDW9G/exec') {
+    if (APPS_SCRIPT_URL && APPS_SCRIPT_URL !== 'https://script.google.com/macros/s/AKfycbxIF-7ztLdIpYLplQ-gLdNHxEoysXtKP_9H6rb9DRaF8dD1fgvEr5-g2-29x8b0U1e7/exec') {
       try {
         const res  = await fetch(`${APPS_SCRIPT_URL}?action=check_token&token=${encodeURIComponent(token)}`);
         const data = await res.json();
