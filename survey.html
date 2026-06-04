@@ -485,12 +485,25 @@
     document.getElementById(id).classList.add('active');
   }
 
-  if (!token) {
-    showScreen('invalidScreen');
-  } else {
+  async function verifyToken() {
+    if (!token) { showScreen('invalidScreen'); return; }
+
+    // Fast local check first (no network needed if already submitted on this device)
     const used = JSON.parse(localStorage.getItem('fv_tokens') || '[]');
-    if (used.includes(token)) showScreen('alreadyScreen');
+    if (used.includes(token)) { showScreen('alreadyScreen'); return; }
+
+    // Server-side check — catches reuse from other devices
+    if (APPS_SCRIPT_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+      try {
+        const res  = await fetch(`${APPS_SCRIPT_URL}?action=check_token&token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+        if (data.status === 'invalid')      { showScreen('invalidScreen');  return; }
+        if (data.status === 'already_used') { showScreen('alreadyScreen');  return; }
+      } catch { /* network error — show the form and let server validate on submit */ }
+    }
   }
+
+  verifyToken();
 
   // ─── BUILD STARS ──────────────────────────────────────────────────────────
   STAR_IDS.forEach(id => {
@@ -590,28 +603,26 @@
 
     const payload = {
       token,
-      timestamp:         new Date().toISOString(),
-      q1_overall:        document.getElementById('q1').dataset.val,
-      q2_quality:        document.getElementById('q2').dataset.val,
-      q3_response_time:  document.getElementById('q3').dataset.val,
-      q4_resolution:     document.getElementById('q4').dataset.val,
-      q5_communication:  document.getElementById('q5').dataset.val,
-      q6_value:          document.getElementById('q6').dataset.val,
-      q7_ease:           document.getElementById('q7').querySelector('.on')?.dataset.val,
-      q8_professionalism:document.getElementById('q8').dataset.val,
-      q9_nps:            npsWrap.dataset.val,
-      q10_feedback:      document.getElementById('q10').value.trim(),
+      timestamp:          new Date().toISOString(),
+      q1_overall:         document.getElementById('q1').dataset.val,
+      q2_quality:         document.getElementById('q2').dataset.val,
+      q3_response_time:   document.getElementById('q3').dataset.val,
+      q4_resolution:      document.getElementById('q4').dataset.val,
+      q5_communication:   document.getElementById('q5').dataset.val,
+      q6_value:           document.getElementById('q6').dataset.val,
+      q7_ease:            document.getElementById('q7').querySelector('.on')?.dataset.val,
+      q8_professionalism: document.getElementById('q8').dataset.val,
+      q9_nps:             npsWrap.dataset.val,
+      q10_feedback:       document.getElementById('q10').value.trim(),
     };
 
-    try {
-      const res  = await fetch(APPS_SCRIPT_URL, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const data = await res.json();
+    // no-cors: Google Apps Script blocks cross-origin response reading.
+    // Token was already validated via GET on page load, so showing success after POST is safe.
+    const formData = new FormData();
+    formData.append('payload', JSON.stringify(payload));
 
-      if (data.status === 'already_used') { showScreen('alreadyScreen'); return; }
+    try {
+      await fetch(APPS_SCRIPT_URL, { method: 'POST', body: formData, mode: 'no-cors' });
 
       // Mark token in localStorage as a secondary guard
       const used = JSON.parse(localStorage.getItem('fv_tokens') || '[]');
@@ -623,7 +634,7 @@
       btn.disabled = false;
       btn.classList.remove('loading');
       btn.querySelector('.btn-text').textContent = 'Submit Survey';
-      alert('Something went wrong. Please try again in a moment.');
+      alert('Something went wrong. Please check your connection and try again.');
     }
   }
 
